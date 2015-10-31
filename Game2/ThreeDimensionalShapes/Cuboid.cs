@@ -5,6 +5,19 @@ namespace Game2.ThreeDimensionalShapes
 {
     public class Cuboid : ThreeDimensionalShape
     {
+
+        private VertexPositionNormalTexture[] vertices;
+
+        private bool isConstructed;
+        int NUM_TRIANGLES = 32;
+
+        private int NUM_VERTICES = 36;
+        private Vector3 position;
+
+        private VertexBuffer Buffer;
+        private Vector3 rotation;
+        private Vector3 size;
+
         public Cuboid(Vector3 position, Vector3 size, GraphicsDevice device)
         {
             Position = position;
@@ -20,49 +33,48 @@ namespace Game2.ThreeDimensionalShapes
                 return;
             }
 
-            Matrix R = Matrix.CreateRotationX(Rotation.X)*Matrix.CreateRotationY(Rotation.Y) + Matrix.CreateRotationZ(Rotation.Z);
 
-            Matrix T = Matrix.CreateTranslation(Position);
-
-            effect.World = R*T;
             device.SetVertexBuffer(Buffer);
             device.DrawPrimitives(PrimitiveType.TriangleList, 0, NUM_TRIANGLES);
         }
 
-        private VertexPositionNormalTexture[] vertices;
+        public void UpdateWorld()
+        {
+            Matrix R = Matrix.CreateRotationX(Rotation.X) * Matrix.CreateRotationY(Rotation.Y) + Matrix.CreateRotationZ(Rotation.Z);
 
-        private bool isConstructed;
-        int NUM_TRIANGLES = 32;
+            Matrix T = Matrix.CreateTranslation(Position);
 
-        private int NUM_VERTICES = 36;
-        private Vector3 position;
-
-        private VertexBuffer Buffer;
+            World = R * T;
+        }
 
         public override Vector3 Position
         {
             get { return position; }
             set
             {
-                position = value; 
-                
+                position = value;
+                UpdateWorld();
             }
         }
-
-        private Vector3 size;
-
+        
         public override Vector3 Size
         {
             get { return size; }
-            set { size = value; }
+            set
+            {
+                size = value;
+                UpdateWorld();
+            }
         }
-
-        private Vector3 rotation;
 
         public override Vector3 Rotation
         {
             get { return rotation; }
-            set { rotation = value; }
+            set
+            {
+                rotation = value;
+                UpdateWorld();
+            }
         }
 
         public void Construct(GraphicsDevice device)

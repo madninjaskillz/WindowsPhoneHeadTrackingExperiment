@@ -74,7 +74,7 @@ namespace Game2
             effect.World = Matrix.CreateRotationY(MathHelper.ToRadians(rotation)) * Matrix.CreateRotationX(MathHelper.ToRadians(rotation)) * Matrix.CreateTranslation(shapes[1].Position);
             effect.View = Matrix.CreateLookAt(cameraPosition, shapes[1].Position, Vector3.Up);
 
-            effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, 1080/(1920f/2f), 1.0f, 1000.0f);
+            effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, 1080 / (1920f / 2f), 1.0f, 1000.0f);
             //  effect.TextureEnabled = true;
             //  effect.Texture = cubeTexture;
             //     effect.EnableDefaultLighting();
@@ -93,11 +93,13 @@ namespace Game2
 
         public void DrawEye()
         {
-            foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+            foreach (ThreeDimensionalShape threeDimensionalShape in shapes)
             {
-                pass.Apply();
-                foreach (ThreeDimensionalShape threeDimensionalShape in shapes)
+                effect.World = threeDimensionalShape.World;
+                foreach (EffectPass pass in effect.CurrentTechnique.Passes)
                 {
+                    pass.Apply();
+
                     threeDimensionalShape.RenderToDevice(graphics.GraphicsDevice, effect);
                 }
 

@@ -15,5 +15,6 @@ namespace Game2.ThreeDimensionalShapes
         public abstract Vector3 Rotation { get; set; }
 
         public abstract Vector3 Size { get; set; }
+        public Matrix World { get; set; }
     }
 }
