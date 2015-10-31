@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Windows.Devices.Sensors;
 using Game2.ThreeDimensionalShapes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -20,6 +21,20 @@ namespace Game2
         private float rotation = 0f;
         private Viewport leftEye;
         private Viewport rightEye;
+
+        private double zeroPitch;
+        private double zeroYaw;
+        private double zeroRoll;
+
+        public double PRotX;
+        public double PRotY;
+        public double PRotZ;
+
+        public double RotPitch;
+        public double RotYaw;
+        public double RotRoll;
+
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this);
@@ -31,6 +46,16 @@ namespace Game2
 
         protected override void LoadContent()
         {
+            var incl = Inclinometer.GetDefault();
+
+            {
+                var inc = incl.GetCurrentReading();
+                zeroPitch = inc.PitchDegrees;
+                zeroYaw = inc.YawDegrees;
+                zeroRoll = inc.RollDegrees;
+
+            }
+
             effect = new BasicEffect(graphics.GraphicsDevice);
             effect.AmbientLightColor = Vector3.One;
             effect.DirectionalLight0.Enabled = true;
@@ -55,15 +80,22 @@ namespace Game2
             };
 
             shapes.Add(new Cuboid(new Vector3(0, 0, 0), new Vector3(2, 2, 2), graphics.GraphicsDevice));
-            shapes.Add(new Cuboid(new Vector3(3, 3, 3), new Vector3(2, 1, 2), graphics.GraphicsDevice));
-            shapes.Add(new Cuboid(new Vector3(0, 0, -3), new Vector3(1, 1, 2), graphics.GraphicsDevice));
+            shapes.Add(new Cuboid(new Vector3(3, 3, 3), new Vector3(1, 1, 1), graphics.GraphicsDevice));
+            shapes.Add(new Cuboid(new Vector3(-3, -3, -3), new Vector3(1, 1, 5), graphics.GraphicsDevice));
             //    RenderToDevice(GraphicsDevice);
         }
 
         protected override void Update(GameTime gameTime)
         {
-            shapes.Last().Position = shapes.First().Position + new Vector3(1, 0.1f, 0);
-            shapes.First().Rotation = shapes.First().Rotation + new Vector3(1f, 0, 0);
+            var incl = Inclinometer.GetDefault();
+            var inc = incl.GetCurrentReading();
+
+            RotPitch = inc.PitchDegrees - zeroPitch;
+            RotYaw = inc.RollDegrees - zeroYaw;
+            RotRoll = inc.YawDegrees - zeroRoll;
+
+           // shapes.Last().Position = shapes.First().Position + new Vector3(0.01f, 0.1f, 0);
+           // shapes.Last().Rotation = shapes.Last().Rotation + new Vector3(0,0, 0.01f);
             base.Update(gameTime);
         }
 
@@ -71,13 +103,13 @@ namespace Game2
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            effect.World = Matrix.CreateRotationY(MathHelper.ToRadians(rotation)) * Matrix.CreateRotationX(MathHelper.ToRadians(rotation)) * Matrix.CreateTranslation(shapes[1].Position);
-            effect.View = Matrix.CreateLookAt(cameraPosition, shapes[1].Position, Vector3.Up);
-
+            //   effect.World = Matrix.CreateRotationY(MathHelper.ToRadians(rotation)) * Matrix.CreateRotationX(MathHelper.ToRadians(rotation)) * Matrix.CreateTranslation(shapes[1].Position);
+            //            effect.View = Matrix.CreateLookAt(cameraPosition, shapes.Last().Position, Vector3.Up);
+            effect.View = Matrix.CreateTranslation(0, 0, -30f) * Matrix.CreateFromYawPitchRoll((float)RotYaw, (float)RotPitch, (float)RotRoll);
             effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, 1080 / (1920f / 2f), 1.0f, 1000.0f);
             //  effect.TextureEnabled = true;
             //  effect.Texture = cubeTexture;
-            //     effect.EnableDefaultLighting();
+                effect.EnableDefaultLighting();
             Viewport original = graphics.GraphicsDevice.Viewport;
 
             graphics.GraphicsDevice.Viewport = leftEye;
@@ -93,6 +125,7 @@ namespace Game2
 
         public void DrawEye()
         {
+            
             foreach (ThreeDimensionalShape threeDimensionalShape in shapes)
             {
                 effect.World = threeDimensionalShape.World;
