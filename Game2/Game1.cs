@@ -36,6 +36,9 @@ namespace Game2
         public double RotYaw;
         public double RotRoll;
 
+        public SensorRotationMatrix zeroMatrix;
+
+        public SensorRotationMatrix cameraMatrix;
 
         public Game1()
         {
@@ -48,7 +51,7 @@ namespace Game2
 
         protected override void LoadContent()
         {
-          effect = new BasicEffect(graphics.GraphicsDevice);
+            effect = new BasicEffect(graphics.GraphicsDevice);
             effect.AmbientLightColor = Vector3.One;
             effect.DirectionalLight0.Enabled = true;
             effect.DirectionalLight0.DiffuseColor = Vector3.One;
@@ -79,20 +82,21 @@ namespace Game2
 
         public void ResetHome()
         {
-            var incl = Inclinometer.GetDefault();
+            var incl = OrientationSensor.GetDefault();
 
 
-            var inc = incl.GetCurrentReading();
+            OrientationSensorReading inc = incl.GetCurrentReading();
             if (inc != null)
             {
                 zeroSet = true;
-                zeroPitch = inc.PitchDegrees;
-                zeroYaw = inc.YawDegrees;
-                zeroRoll = inc.RollDegrees;
+
+                zeroMatrix = inc.RotationMatrix;
+
             }
 
         }
 
+        private bool debug = false;
         protected override void Update(GameTime gameTime)
         {
             if (!zeroSet)
@@ -101,29 +105,35 @@ namespace Game2
             }
             else
             {
-                var incl = Inclinometer.GetDefault();
+                var incl = OrientationSensor.GetDefault();
                 var inc = incl.GetCurrentReading();
-
-                RotPitch = inc.PitchDegrees - zeroPitch;
-                RotYaw = inc.RollDegrees - zeroYaw;
-                RotRoll = inc.YawDegrees - zeroRoll;
+                if (inc != null)
+                {
+                    cameraMatrix = inc.RotationMatrix;
+                }
             }
             // shapes.Last().Position = shapes.First().Position + new Vector3(0.01f, 0.1f, 0);
-           // shapes.Last().Rotation = shapes.Last().Rotation + new Vector3(0,0, 0.01f);
+            shapes.Last().Rotation = shapes.Last().Rotation + new Vector3(0,0, 0.01f);
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
-
+            if (cameraMatrix == null)
+            {
+                return;
+            }
             //   effect.World = Matrix.CreateRotationY(MathHelper.ToRadians(rotation)) * Matrix.CreateRotationX(MathHelper.ToRadians(rotation)) * Matrix.CreateTranslation(shapes[1].Position);
             //            effect.View = Matrix.CreateLookAt(cameraPosition, shapes.Last().Position, Vector3.Up);
-            effect.View =  Matrix.CreateFromYawPitchRoll((float)RotYaw, (float)RotPitch, (float)RotRoll);
-            effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, (1920f / 2f)/1080, 1.0f, 1000.0f);
+
+            Matrix temp = cameraMatrix.ToXnaMatrix() - zeroMatrix.ToXnaMatrix();
+            effect.View = Matrix.Invert(cameraMatrix.ToXnaMatrix());
+            //Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians((float)RotYaw), MathHelper.ToRadians((float)RotPitch), MathHelper.ToRadians((float)RotRoll));
+            effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, (1920f / 2f) / 1080, 1.0f, 1000.0f);
             //  effect.TextureEnabled = true;
             //  effect.Texture = cubeTexture;
-                effect.EnableDefaultLighting();
+            effect.EnableDefaultLighting();
             Viewport original = graphics.GraphicsDevice.Viewport;
 
             graphics.GraphicsDevice.Viewport = leftEye;
@@ -139,10 +149,10 @@ namespace Game2
 
         public void DrawEye()
         {
-            
+
             foreach (ThreeDimensionalShape threeDimensionalShape in shapes)
             {
-               effect.World = threeDimensionalShape.World;
+                effect.World = threeDimensionalShape.World;
                 foreach (EffectPass pass in effect.CurrentTechnique.Passes)
                 {
                     pass.Apply();
