@@ -27,17 +27,17 @@ namespace Game2
             m[2, 2] = cameraMatrix.M33;
 
             int r1 = 0;
-            int r2 = 1;
-            int r3 = 2;
+            int r2 = 2;
+            int r3 = 1;
 
-            int c1 = 0;
-            int c2 = 1;
+            int c1 = 1;
+            int c2 = 0;
             int c3 = 2;
 
             return new Matrix(
-                m[c1, r1], m[c2, r1], m[c3, r1],0,
-                m[c1, r2], m[c2, r2], m[c3, r2],0,
-                m[c1, r3], m[c2, r3], m[c3, r3],0,
+                -m[c1, r1], m[c2, r1], m[c3, r1],0,
+                -m[c1, r2], m[c2, r2], m[c3, r2],0,
+                -m[c1, r3], m[c2, r3], m[c3, r3],0,
                 0, 0, 0, 1
                 );
         }

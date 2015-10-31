@@ -41,10 +41,10 @@ namespace Game2.ThreeDimensionalShapes
         public void UpdateWorld()
         {
             Matrix R = Matrix.CreateRotationX(Rotation.X) * Matrix.CreateRotationY(Rotation.Y) + Matrix.CreateRotationZ(Rotation.Z);
-
+            Matrix S = Matrix.CreateScale(Size);
             Matrix T = Matrix.CreateTranslation(Position);
 
-            World = R * T;
+            World = R * T*S;
         }
 
         public override Vector3 Position

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Windows.Devices.Sensors;
 using Game2.ThreeDimensionalShapes;
@@ -51,6 +52,7 @@ namespace Game2
 
         protected override void LoadContent()
         {
+            Random r = new Random();
             effect = new BasicEffect(graphics.GraphicsDevice);
             effect.AmbientLightColor = Vector3.One;
             effect.DirectionalLight0.Enabled = true;
@@ -74,9 +76,11 @@ namespace Game2
                 Height = 1080
             };
 
-            shapes.Add(new Cuboid(new Vector3(0, 0, 30), new Vector3(2, 2, 2), graphics.GraphicsDevice));
-            shapes.Add(new Cuboid(new Vector3(3, 3, 33), new Vector3(1, 1, 1), graphics.GraphicsDevice));
-            shapes.Add(new Cuboid(new Vector3(-3, -3, 27), new Vector3(1, 1, 5), graphics.GraphicsDevice));
+            for (int i = 0; i < 400; i++)
+            {
+                shapes.Add(new Cuboid(new Vector3(-50+r.Next(100), -50 + r.Next(100), -50 + r.Next(100)), new Vector3(r.Next(5)+1, r.Next(5) + 1, r.Next(5) + 1), graphics.GraphicsDevice));
+            }
+            
             //    RenderToDevice(GraphicsDevice);
         }
 
@@ -128,7 +132,7 @@ namespace Game2
             //            effect.View = Matrix.CreateLookAt(cameraPosition, shapes.Last().Position, Vector3.Up);
 
             Matrix temp = cameraMatrix.ToXnaMatrix() - zeroMatrix.ToXnaMatrix();
-            effect.View = Matrix.Invert(cameraMatrix.ToXnaMatrix());
+            effect.View = (cameraMatrix.ToXnaMatrix());
             //Matrix.CreateFromYawPitchRoll(MathHelper.ToRadians((float)RotYaw), MathHelper.ToRadians((float)RotPitch), MathHelper.ToRadians((float)RotRoll));
             effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, (1920f / 2f) / 1080, 1.0f, 1000.0f);
             //  effect.TextureEnabled = true;
