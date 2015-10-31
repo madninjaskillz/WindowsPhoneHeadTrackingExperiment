@@ -26,6 +26,8 @@ namespace Game2
         private double zeroYaw;
         private double zeroRoll;
 
+        private bool zeroSet = false;
+
         public double PRotX;
         public double PRotY;
         public double PRotZ;
@@ -46,17 +48,7 @@ namespace Game2
 
         protected override void LoadContent()
         {
-            var incl = Inclinometer.GetDefault();
-
-            {
-                var inc = incl.GetCurrentReading();
-                zeroPitch = inc.PitchDegrees;
-                zeroYaw = inc.YawDegrees;
-                zeroRoll = inc.RollDegrees;
-
-            }
-
-            effect = new BasicEffect(graphics.GraphicsDevice);
+          effect = new BasicEffect(graphics.GraphicsDevice);
             effect.AmbientLightColor = Vector3.One;
             effect.DirectionalLight0.Enabled = true;
             effect.DirectionalLight0.DiffuseColor = Vector3.One;
@@ -79,22 +71,44 @@ namespace Game2
                 Height = 1080
             };
 
-            shapes.Add(new Cuboid(new Vector3(0, 0, 0), new Vector3(2, 2, 2), graphics.GraphicsDevice));
-            shapes.Add(new Cuboid(new Vector3(3, 3, 3), new Vector3(1, 1, 1), graphics.GraphicsDevice));
-            shapes.Add(new Cuboid(new Vector3(-3, -3, -3), new Vector3(1, 1, 5), graphics.GraphicsDevice));
+            shapes.Add(new Cuboid(new Vector3(0, 0, 30), new Vector3(2, 2, 2), graphics.GraphicsDevice));
+            shapes.Add(new Cuboid(new Vector3(3, 3, 33), new Vector3(1, 1, 1), graphics.GraphicsDevice));
+            shapes.Add(new Cuboid(new Vector3(-3, -3, 27), new Vector3(1, 1, 5), graphics.GraphicsDevice));
             //    RenderToDevice(GraphicsDevice);
+        }
+
+        public void ResetHome()
+        {
+            var incl = Inclinometer.GetDefault();
+
+
+            var inc = incl.GetCurrentReading();
+            if (inc != null)
+            {
+                zeroSet = true;
+                zeroPitch = inc.PitchDegrees;
+                zeroYaw = inc.YawDegrees;
+                zeroRoll = inc.RollDegrees;
+            }
+
         }
 
         protected override void Update(GameTime gameTime)
         {
-            var incl = Inclinometer.GetDefault();
-            var inc = incl.GetCurrentReading();
+            if (!zeroSet)
+            {
+                ResetHome();
+            }
+            else
+            {
+                var incl = Inclinometer.GetDefault();
+                var inc = incl.GetCurrentReading();
 
-            RotPitch = inc.PitchDegrees - zeroPitch;
-            RotYaw = inc.RollDegrees - zeroYaw;
-            RotRoll = inc.YawDegrees - zeroRoll;
-
-           // shapes.Last().Position = shapes.First().Position + new Vector3(0.01f, 0.1f, 0);
+                RotPitch = inc.PitchDegrees - zeroPitch;
+                RotYaw = inc.RollDegrees - zeroYaw;
+                RotRoll = inc.YawDegrees - zeroRoll;
+            }
+            // shapes.Last().Position = shapes.First().Position + new Vector3(0.01f, 0.1f, 0);
            // shapes.Last().Rotation = shapes.Last().Rotation + new Vector3(0,0, 0.01f);
             base.Update(gameTime);
         }
@@ -105,8 +119,8 @@ namespace Game2
 
             //   effect.World = Matrix.CreateRotationY(MathHelper.ToRadians(rotation)) * Matrix.CreateRotationX(MathHelper.ToRadians(rotation)) * Matrix.CreateTranslation(shapes[1].Position);
             //            effect.View = Matrix.CreateLookAt(cameraPosition, shapes.Last().Position, Vector3.Up);
-            effect.View = Matrix.CreateTranslation(0, 0, -30f) * Matrix.CreateFromYawPitchRoll((float)RotYaw, (float)RotPitch, (float)RotRoll);
-            effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, 1080 / (1920f / 2f), 1.0f, 1000.0f);
+            effect.View =  Matrix.CreateFromYawPitchRoll((float)RotYaw, (float)RotPitch, (float)RotRoll);
+            effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, (1920f / 2f)/1080, 1.0f, 1000.0f);
             //  effect.TextureEnabled = true;
             //  effect.Texture = cubeTexture;
                 effect.EnableDefaultLighting();
@@ -128,7 +142,7 @@ namespace Game2
             
             foreach (ThreeDimensionalShape threeDimensionalShape in shapes)
             {
-                effect.World = threeDimensionalShape.World;
+               effect.World = threeDimensionalShape.World;
                 foreach (EffectPass pass in effect.CurrentTechnique.Passes)
                 {
                     pass.Apply();
